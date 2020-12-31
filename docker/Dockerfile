@@ -4,11 +4,11 @@ RUN groupadd user -g 1000 && useradd -u 1000 -g 1000 user -m -d /home/user -s /b
 RUN yum -y update; yum clean all
 RUN yum -y install epel-release && \
     yum -y install \
-			htop \
       ack \
       ctags \
       fortune-mod \
       git \
+      htop \
       iproute \
       make \
       mc \

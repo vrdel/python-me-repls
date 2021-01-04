@@ -15,6 +15,11 @@ async def coro2():
     return '456'
 
 
+async def coro3():
+    # await asyncio.sleep(0)
+    return '789'
+
+
 async def coro2_call():
     print("coro2_called")
     await asyncio.sleep(1.0)
@@ -52,3 +57,12 @@ if __name__ == '__main__':
         loop.run_until_complete(coro2_call())
     finally:
         loop.close()
+
+    try:
+        coro = coro3()
+        coro.send(None)
+        coro.throw(asyncio.CancelledError)
+
+    except StopIteration as e:
+        print('The answer 4 is {}'.format(e.value))
+        print(type(e))

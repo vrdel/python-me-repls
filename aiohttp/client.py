@@ -6,13 +6,18 @@ import time
 
 
 url_beer = 'https://random-data-api.com/api/beer/random_beer'
-url_crypto = 'https://random-data-api.com/api//crypto_coin/random_crypto_coin'
+url_crypto = 'https://random-data-api.com/api/crypto_coin/random_crypto_coin'
 
 
 def write_file(suffix, content):
     with open(f'file-{suffix}', 'a') as fn:
         fn.write(content)
         fn.write("\n")
+
+
+async def delay(seconds):
+    await asyncio.sleep(seconds)
+    return True
 
 
 async def aiohttp_get(url):
@@ -44,6 +49,16 @@ async def wrap(suffix, urlo, urlt):
     await wrap_two(urlt, suffix)
 
 
+async def wrap_delay(urlt):
+    print("Delay started - ", f'{time.ctime()}')
+    flag = await delay(5.0)
+    if flag:
+        await aiohttp_get(urlt)
+    # never got here
+    else:
+        print("Not scheduled")
+
+
 async def task_from_coro(suffix, urlo, urlt):
     task = asyncio.ensure_future(wrap_two(urlt, suffix))
     await wrap_one(urlo, suffix)
@@ -55,6 +70,9 @@ if __name__ == '__main__':
         loop = asyncio.get_event_loop()
         # sequential
         loop.run_until_complete(wrap(time.time(), url_beer, url_crypto))
+
+        # delayed
+        loop.run_until_complete(wrap_delay(url_beer))
 
         # concurrent
         suffix = time.time()

@@ -20,7 +20,7 @@ async def aiohttp_get(url):
 
     async with aiohttp.ClientSession() as session:
         async with session.get(url) as resp:
-            print(resp.status, f'{time.ctime()}')
+            print('HTTP ', resp.status, f' - {time.ctime()}')
             content = await resp.text()
             return content
 
@@ -34,7 +34,7 @@ async def wrap_one(url, suffix):
 
 async def wrap_two(url, suffix):
     print('wrap_two - started -', f'{time.ctime()}')
-    await asyncio.sleep(5)
+    await asyncio.sleep(2)
     data = await aiohttp_get(url)
     write_file(suffix, data)
 
@@ -42,6 +42,12 @@ async def wrap_two(url, suffix):
 async def wrap(suffix, urlo, urlt):
     await wrap_one(urlo, suffix)
     await wrap_two(urlt, suffix)
+
+
+async def task_from_coro(suffix, urlo, urlt):
+    task = asyncio.ensure_future(wrap_two(urlt, suffix))
+    await wrap_one(urlo, suffix)
+    await task
 
 
 if __name__ == '__main__':
@@ -56,5 +62,10 @@ if __name__ == '__main__':
             wrap_one(url_beer, suffix),
             wrap_two(url_crypto, suffix)
         ))
+
+        # concurrent
+        loop.run_until_complete(task_from_coro(time.time(), url_beer,
+                                               url_crypto))
+
     finally:
         loop.close()

@@ -6,34 +6,65 @@ import time
 import ssl
 
 
-SERVENDPI = 'https://goc.egi.eu/gocdbpi/private/?method=get_service_endpoint&scope=&next_cursor=0'
-SITESPI = 'https://goc.egi.eu/gocdbpi/private/?method=get_site&scope=&next_cursor=0'
-SERVGROUPPI = 'https://goc.egi.eu/gocdbpi/private/?method=get_service_group&scope=&next_cursor=0'
+# paginated API
+# SERVENDPI = 'https://goc.egi.eu/gocdbpi/private/?method=get_service_endpoint&scope=&next_cursor=0'
+# no paginated API
+SERVENDPI = 'https://goc.egi.eu/gocdbpi/private/?method=get_service_endpoint'
+
+# no paginated API
+# SITESPI = 'https://goc.egi.eu/gocdbpi/private/?method=get_site&scope=&next_cursor=0'
+SITESPI = 'https://goc.egi.eu/gocdbpi/private/?method=get_site'
+
+# no paginated API
+# SERVGROUPPI = 'https://goc.egi.eu/gocdbpi/private/?method=get_service_group&scope=&next_cursor=0'
+SERVGROUPPI = 'https://goc.egi.eu/gocdbpi/private/?method=get_service_group'
+
+
+def write_file(suffix, content):
+    with open(f'file-{suffix}', 'a') as fn:
+        fn.write(content)
+        fn.write("\n")
 
 
 async def aiohttp_get(url):
     sslcontext = ssl.create_default_context(capath='/etc/grid-security/certificates/')
     sslcontext.load_cert_chain('hostcert.pem', 'hostkey.pem')
 
-    async with aiohttp.ClientSession() as session:
-        async with session.get(url, ssl=sslcontext) as resp:
-            print('HTTP ', resp.status, f' - {time.ctime()}')
-            content = await resp.text()
-            return content
+    suffix = url.split('method=')[1]
 
-
-async def fetch_service_endpoints(url):
+    print('aiohttp_get - started', f' - {time.ctime()}')
     try:
-        response = await aiohttp_get(url)
-        print(response)
+        async with aiohttp.ClientSession() as session:
+            async with session.get(url, ssl=sslcontext) as resp:
+                print(f'HTTP {suffix} ', resp.status, f' - {time.ctime()}')
+                content = await resp.text()
+                write_file(suffix, content)
+                print(f'file-{suffix} written', f' - {time.ctime()}')
+
     except Exception as e:
         print(type(e))
+        print(e)
+
+
+async def sequential():
+    await aiohttp_get(SITESPI)
+    await aiohttp_get(SERVENDPI)
+    await aiohttp_get(SERVGROUPPI)
 
 
 if __name__ == '__main__':
     try:
         loop = asyncio.get_event_loop()
-        ret = loop.run_until_complete(fetch_service_endpoints(SERVENDPI))
+        print("Concurrent", f'- {time.ctime()}')
+        loop.run_until_complete(asyncio.gather(
+            aiohttp_get(SITESPI),
+            aiohttp_get(SERVENDPI),
+            aiohttp_get(SERVGROUPPI),
+        ))
+        print("End", f'- {time.ctime()}')
+        print("Sequential", f'- {time.ctime()}')
+        loop.run_until_complete(sequential())
+        print("End", f'- {time.ctime()}')
 
     finally:
         loop.close()

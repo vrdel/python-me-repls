@@ -20,15 +20,17 @@ log.addHandler(logging.StreamHandler())
 # paginated API
 # SERVENDPI = 'https://goc.egi.eu/gocdbpi/private/?method=get_service_endpoint&scope=&next_cursor=0'
 # no paginated API
+# faulty - test HTTP 400 retry
+# SERVENDPI = 'https://goc.egi.eu/gocdbpi/gocdbpi/private/?method=get_service_endpoint'
 SERVENDPI = 'https://goc.egi.eu/gocdbpi/private/?method=get_service_endpoint'
 
 # no paginated API
-# SITESPI = 'https://goc.egi.eu/gocdbpi/private/?method=get_site&scope=&next_cursor=0'
-SITESPI = 'https://goc.egi.eu/gocdbpi/private/?method=get_site'
+# SITESPI = 'https://goc.egi.eu/gocdbpi/private/?method=get_site&s
+SITESPI = 'https://goc.egi.eu/gocdbpi/gocdpi/private/?method=get_site'
 
 # no paginated API
 # SERVGROUPPI = 'https://goc.egi.eu/gocdbpi/private/?method=get_service_group&scope=&next_cursor=0'
-SERVGROUPPI = 'https://goc.egi.eu/gocdbpi/private/?method=get_service_group'
+SERVGROUPPI = 'https://goc.egi.eu/gocdbpi/gocdbpi/private/?method=get_service_group'
 
 
 def write_file(suffix, content):
@@ -43,8 +45,9 @@ async def aiohttp_get(url, paginated=False):
 
     suffix = url.split('method=')[1]
 
-    http_retry_options = ExponentialRetry(attempts=2)
     # http_retry_options = ListRetry(timeouts=[10.0, 20.0, 30.0, 40.0])
+    # http_retry_options = ExponentialRetry(attempts=2, statuses=[400])
+    http_retry_options = ExponentialRetry(attempts=2)
     client_timeout = aiohttp.ClientTimeout(total=1*15, connect=None,
                                            sock_connect=None, sock_read=None)
     conn_try, connection_attempts = 1, 3
@@ -59,6 +62,7 @@ async def aiohttp_get(url, paginated=False):
                         try:
                             async with session.get(url + f'&scope=&next_cursor={cursor}',
                                                 ssl=sslcontext) as resp:
+                                print(resp.status)
                                 content = await resp.text()
                                 parsed = xml.dom.minidom.parseString(content)
                                 write_file(suffix, content)
@@ -70,6 +74,7 @@ async def aiohttp_get(url, paginated=False):
                                         for e in href.split('&'):
                                             if 'next_cursor' in e:
                                                 cursor = e.split('=')[1]
+                                break
                         except asyncio.TimeoutError as e:
                             print('connection try - ', conn_try)
                         conn_try += 1

@@ -26,11 +26,11 @@ SERVENDPI = 'https://goc.egi.eu/gocdbpi/private/?method=get_service_endpoint'
 
 # no paginated API
 # SITESPI = 'https://goc.egi.eu/gocdbpi/private/?method=get_site&s
-SITESPI = 'https://goc.egi.eu/gocdbpi/gocdpi/private/?method=get_site'
+SITESPI = 'https://goc.egi.eu/gocdbpi/private/?method=get_site'
 
 # no paginated API
 # SERVGROUPPI = 'https://goc.egi.eu/gocdbpi/private/?method=get_service_group&scope=&next_cursor=0'
-SERVGROUPPI = 'https://goc.egi.eu/gocdbpi/gocdbpi/private/?method=get_service_group'
+SERVGROUPPI = 'https://goc.egi.eu/gocdbpi/private/?method=get_service_group'
 
 
 def write_file(suffix, content):

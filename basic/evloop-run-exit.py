@@ -7,7 +7,12 @@ async def f(delay):
 
 if __name__ == '__main__':
     loop = asyncio.get_event_loop()
-    t1 = loop.create_task(f(1))
-    t2 = loop.create_task(f(2))
-    loop.run_until_complete(t1)
+    t1 = loop.create_task(f(60))
+    t2 = loop.create_task(f(60))
+    try:
+        loop.run_until_complete(asyncio.gather(
+            t1, t2
+        ))
+    except KeyboardInterrupt:
+        print('Got signal: SIGINT, shutting down.')
     loop.close()

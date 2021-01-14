@@ -15,4 +15,9 @@ if __name__ == '__main__':
         ))
     except KeyboardInterrupt:
         print('Got signal: SIGINT, shutting down.')
+    tasks = asyncio.Task.all_tasks(loop=loop)
+    for t in tasks:
+        t.cancel()
+    group = asyncio.gather(*tasks, return_exceptions=True)
+    loop.run_until_complete(group)
     loop.close()

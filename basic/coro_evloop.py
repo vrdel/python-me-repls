@@ -8,7 +8,6 @@ import inspect
 async def coro1():
     await asyncio.sleep(5.0)
     print(f'coro1 - {time.ctime()}')
-    return '123'
 
 
 async def coro2():

@@ -12,7 +12,6 @@ docker run \
 -v /tmp/.X11-unix:/tmp/.X11-unix \
 -h docker-centos7 \
 --net host \
---name asyncio-test \
+--name python-me-repls \
 --rm -ti \
--v $HOME/my_work/srce/git.asyncio-test/asyncio-test:/home/user/asyncio-test-source \
-ipanema:5000/asyncio-test:$TAG
+ipanema:5000/python-me-repls:$TAG

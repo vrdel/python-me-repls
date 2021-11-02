@@ -14,4 +14,5 @@ docker run \
 --net host \
 --name asyncio-test \
 --rm -ti \
-ipanema:5000/asyncio-test:$TAG
+-v $HOME/my_work/srce/git.python-me-repls/python-me-repls/:/home/user/python-me-repls \
+ipanema:5000/python-me-repls:$TAG

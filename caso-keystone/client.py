@@ -3,75 +3,55 @@
 import configparser
 import os
 import sys
+from config import parse_config
+from log import Logger
+
+from keystoneauth1.identity import v3
+from keystoneclient.v3 import client
+from keystoneauth1 import session
 
 
-conf = f"./client.conf"
+logger = Logger('test-keystone-client').get()
 
 
-def parse_config(logger=None):
-    confopts = dict()
+class IdentityClient(object):
+    def __init__(self, logger, admin_user, admin_password, admin_project,
+                 admin_project_id, url, member_role):
+        self.logger = logger
+        self.admin_user = admin_user
+        self.admin_password = admin_password
+        self.admin_project = admin_project
+        self.admin_project_id = admin_project_id
+        self.url = url
+        self.member_role = member_role
+        self.project_id = None
+        self.setup_client()
 
-    try:
-        config = configparser.ConfigParser()
-        if config.read(conf):
-            for section in config.sections():
-                if section.startswith('openstack'):
-                    projectid = config.get(section, 'project_id').strip()
-                    confopts['openstack'] = {'project_id': projectid}
+    def get_role(self, name):
+        found = filter(lambda r: r.name == name,
+                       self.admin_client.roles.list())
+        return found[0] if found else None
 
-                    projectdomainid = config.get(section, 'project_domain_id').strip()
-                    confopts['openstack'].update({'project_domain_id': projectdomainid})
-
-                    projectname = config.get(section, 'project_name').strip()
-                    confopts['openstack'].update({'project_name': projectname})
-
-                    userdomainid = config.get(section, 'user_domain_id').strip()
-                    confopts['openstack'].update({'user_domain_id': userdomainid})
-
-                    username = config.get(section, 'username').strip()
-                    confopts['openstack'].update({'username': username})
-
-                    password = config.get(section, 'password').strip()
-                    confopts['openstack'].update({'password': password})
-
-                    url = config.get(section, 'url').strip()
-                    confopts['openstack'].update({'url': url})
-
-                    member_role = config.get(section, 'member_role').strip()
-                    confopts['openstack'].update({'member_role': member_role})
-
-            return confopts
-
-        else:
-            if logger:
-                logger.error('Missing %s' % conf)
-            else:
-                sys.stderr.write('Missing %s\n' % conf)
-            raise SystemExit(1)
-
-    except (configparser.NoOptionError, configparser.NoSectionError) as e:
-        if logger:
-            logger.error(e)
-        else:
-            sys.stderr.write('%s\n' % e)
-        raise SystemExit(1)
-
-    except (configparser.MissingSectionHeaderError, configparser.ParsingError, SystemExit) as e:
-        if getattr(e, 'filename', False):
-            if logger:
-                logger.error(e.filename + ' is not a valid configuration file')
-                logger.error(' '.join(e.args))
-            else:
-                sys.stderr.write(e.filename + ' is not a valid configuration file\n')
-                sys.stderr.write(' '.join(e.args) + '\n')
-        raise SystemExit(1)
-
-    return confopts
+    def setup_client(self):
+        auth = v3.Password(auth_url=self.url, username=self.admin_user,
+                           password=self.admin_password,
+                           user_domain_id='default',
+                           project_id=self.admin_project_id,
+                           project_domain_id='Default',
+                           project_name=self.admin_project)
+        sess = session.Session(auth=auth)
+        self.admin_client = client.Client(session=sess, interface='public')
+        self.role = self.get_role(self.member_role)
 
 
 def main():
     confopts = parse_config()
-    import ipdb; ipdb.set_trace()
+    keystone = IdentityClient(logger, confopts['openstack']['username'],
+                              confopts['openstack']['password'],
+                              confopts['openstack']['project_name'],
+                              confopts['openstack']['project_id'],
+                              confopts['openstack']['url'],
+                              confopts['openstack']['member_role'])
 
 
 if __name__ == '__main__':

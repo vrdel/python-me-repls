@@ -47,8 +47,8 @@ class IdentityClient(object):
         sess = session.Session(auth=auth)
         self.client = client.Client(session=sess, interface=self.interface)
         self.role = self.get_role(self.member_role)
-        logger.info(self.client)
-        logger.info(self.role)
+        logger.info("Authenticated")
+        logger.info(f"Authentication token: {sess.get_token()}")
 
 
 def main():

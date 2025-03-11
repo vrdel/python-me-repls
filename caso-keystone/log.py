@@ -4,6 +4,9 @@ import sys
 import os.path
 
 
+logging.getLogger('keystoneauth').setLevel(logging.DEBUG)
+
+
 class Logger(object):
     logger = None
     logfile = './keystone-client.log'

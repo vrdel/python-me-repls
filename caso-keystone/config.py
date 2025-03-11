@@ -38,6 +38,9 @@ def parse_config(logger=None):
                     member_role = config.get(section, 'member_role').strip()
                     confopts['openstack'].update({'member_role': member_role})
 
+                    interface = config.get(section, 'interface').strip()
+                    confopts['openstack'].update({'interface': interface})
+
             return confopts
 
         else:

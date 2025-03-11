@@ -18,7 +18,7 @@ logger = Logger('test-keystone-client').get()
 class IdentityClient(object):
     def __init__(self, logger, user, password, project,
                  project_id, project_domain_id, user_domain_id, url,
-                 member_role):
+                 member_role, interface):
         self.logger = logger
         self.user = user
         self.password = password
@@ -29,11 +29,12 @@ class IdentityClient(object):
         self.project_id = None
         self.project_domain_id = project_domain_id
         self.user_domain_id = user_domain_id
+        self.interface = interface
         self.setup_client()
 
     def get_role(self, name):
-        found = filter(lambda r: r.name == name,
-                       self.client.roles.list())
+        found = list(filter(lambda r: r.name == name,
+                            self.client.roles.list()))
         return found[0] if found else None
 
     def setup_client(self):
@@ -44,8 +45,10 @@ class IdentityClient(object):
                            project_domain_id=self.project_domain_id,
                            project_name=self.project)
         sess = session.Session(auth=auth)
-        self.client = client.Client(session=sess, interface='public')
+        self.client = client.Client(session=sess, interface=self.interface)
         self.role = self.get_role(self.member_role)
+        logger.info(self.client)
+        logger.info(self.role)
 
 
 def main():
@@ -58,7 +61,8 @@ def main():
                                   confopts['openstack']['project_domain_id'],
                                   confopts['openstack']['user_domain_id'],
                                   confopts['openstack']['url'],
-                                  confopts['openstack']['member_role'])
+                                  confopts['openstack']['member_role'],
+                                  confopts['openstack']['interface'])
 
     except exceptions.connection.ConnectFailure as exc:
         logger.error(repr(exc))

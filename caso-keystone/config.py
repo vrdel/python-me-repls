@@ -41,6 +41,10 @@ def parse_config(logger=None):
                     interface = config.get(section, 'interface').strip()
                     confopts['openstack'].update({'interface': interface})
 
+                    system_scope = config.get(section, 'system_scope').strip()
+                    system_scope = system_scope or None
+                    confopts['openstack'].update({'system_scope': system_scope})
+
             return confopts
 
         else:

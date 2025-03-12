@@ -18,7 +18,7 @@ logger = Logger('test-keystone-client').get()
 class IdentityClient(object):
     def __init__(self, logger, user, password, project,
                  project_id, project_domain_id, user_domain_id, url,
-                 member_role, interface):
+                 member_role, interface, system_scope):
         self.logger = logger
         self.user = user
         self.password = password
@@ -30,6 +30,7 @@ class IdentityClient(object):
         self.project_domain_id = project_domain_id
         self.user_domain_id = user_domain_id
         self.interface = interface
+        self.system_scope = system_scope
         self.setup_client()
 
     def get_role(self, name):
@@ -43,12 +44,14 @@ class IdentityClient(object):
                            user_domain_id=self.user_domain_id,
                            project_id=self.project_id,
                            project_domain_id=self.project_domain_id,
-                           project_name=self.project)
+                           project_name=self.project,
+                           system_scope=self.system_scope)
         sess = session.Session(auth=auth)
         self.client = client.Client(session=sess, interface=self.interface)
-        self.role = self.get_role(self.member_role)
+        token = sess.get_token()
         logger.info("Authenticated")
-        logger.info(f"Authentication token: {sess.get_token()}")
+        logger.info(f"Authentication token: {token}")
+        self.role = self.get_role(self.member_role)
 
 
 def main():
@@ -62,12 +65,14 @@ def main():
                                   confopts['openstack']['user_domain_id'],
                                   confopts['openstack']['url'],
                                   confopts['openstack']['member_role'],
-                                  confopts['openstack']['interface'])
+                                  confopts['openstack']['interface'],
+                                  confopts['openstack']['system_scope'])
 
-    except exceptions.connection.ConnectFailure as exc:
-        logger.error(repr(exc))
     except Exception as exc:
-        logger.error(f'{exc.url}({exc.method}) {repr(exc)}')
+        if getattr(exc, 'url', None) and getattr(exc, 'method', None):
+            logger.error(f'{exc.url}({exc.method}) {repr(exc)}')
+        else:
+            logger.error(repr(exc))
 
 
 if __name__ == '__main__':

@@ -8,3 +8,4 @@ user_domain_id = default
 username = admin
 member_role = member
 interface = public
+system_scope =

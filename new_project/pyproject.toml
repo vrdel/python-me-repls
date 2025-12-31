@@ -1,0 +1,56 @@
+[tool.poetry]
+package-mode = true
+version = "0"
+
+[tool.poetry.dependencies]
+python = "^3.14"
+requests = "*"
+
+[tool.poetry.group.devel]
+optional = true
+
+[tool.poetry.group.devel.dependencies]
+build = "*"
+ipdb = "*"
+
+[project]
+name = "new_project"
+version = "0.1.0"
+description = "Bootstrap new python project"
+authors = [
+    {name = "Daniel Vrcic",email = "daniel.vrcic@gmail.com"}
+]
+readme = "README.md"
+requires-python = ">=3.14"
+dependencies = [
+	"requests"
+]
+classifiers = [
+  "Programming Language :: Python :: 3.14",
+  "License :: OSI Approved :: Apache Software License",
+  "Operating System :: POSIX :: Linux",
+]
+
+[build-system]
+requires = ["setuptools"]
+build-backend = "setuptools.build_meta"
+
+[project.scripts]
+newproject = 'new_project.cli.newproject:main'
+
+[tool.setuptools]
+packages = [
+	'new_project',
+	'new_project.cli'
+]
+include-package-data = true
+
+[tool.setuptools.package-dir]
+new_project = "modules/"
+"new_project.cli" = "cli/"
+
+[tool.setuptools.data-files]
+"" = ["pyproject.toml", "poetry.lock"]
+
+[tool.setuptools.dynamic]
+version = { attr = "version.vernum" }

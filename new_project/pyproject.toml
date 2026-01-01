@@ -11,7 +11,7 @@ optional = true
 
 [tool.poetry.group.devel.dependencies]
 build = "*"
-ipdb = "*"
+pdbpp = "*"
 
 [project]
 name = "new_project"
